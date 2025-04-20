@@ -59,3 +59,4 @@ class Distro:
             return "pacman -Sy"
         else:
             return None
+
