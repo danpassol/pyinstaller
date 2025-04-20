@@ -49,3 +49,11 @@ class Distro:
             return "dnf upgrade --refresh -y"
         elif self.package_manager == "pacman":
             return "pacman -Syu --noconfirm"
+
+    def remove_cmd(self, packages):
+        if self.package_manager == "apt":
+            return f"apt purge -y {' '.join(packages)}"
+        elif self.package_manager == "dnf":
+            return f"dnf remove -y {' '.join(packages)}"
+        elif self.package_manager == "pacman":
+            return f"pacman -R {' '.join(packages)}"
