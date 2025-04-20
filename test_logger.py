@@ -3,7 +3,7 @@
 from core.logger import setup_logger
 
 # Set verbose=True to see DEBUG logs
-log = setup_logger(verbose=False)
+log = setup_logger(verbose=True)
 
 def main():
     log.debug("This is a debug message (only visible in verbose mode).")
