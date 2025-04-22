@@ -35,16 +35,7 @@ class CommandRunner:
         return self._run_cmd(cmd)
 
     def remove(self, packages):
-        if self.package_manager == "apt":
-            cmd = f"apt remove -y {' '.join(packages)}"
-        elif self.package_manager == "dnf":
-            cmd = f"dnf remove -y {' '.join(packages)}"
-        elif self.package_manager == "pacman":
-            cmd = f"pacman -R --noconfirm {' '.join(packages)}"
-        else:
-            log.error(f"Unsupported package manager: {self.package_manager}")
-            return None
-
+        cmd = self.distro.remove_cmd(packages)
         log.info(f"Removing packages: {packages}")
         return self._run_cmd(cmd)
 
