@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+**/__pycache__/.*
+__pycache__/
+*.py[cod]
+*$py.class
+
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# PyInstaller
+*.spec
+
+# Unit test / coverage reports
+.coverage
+.cache
+.tox/
+.nox/
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
+
+# pytype static type analyzer
+.pytype/
+core/__pycache__/*
