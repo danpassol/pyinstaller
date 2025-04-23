@@ -1,6 +1,5 @@
 # Description: this is a simple installer script for demonstration purposes.
-# It doesn't do anything useful, but it shows how to structure an installer.
-# this wouldn't be in the final version of the code, it's just for testing purposes.
+# It doesn't do anything useful, but it shows how to structure an installer.    
 
 def run(verbose=False):
     print("Hello installer running...")
