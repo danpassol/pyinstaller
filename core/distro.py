@@ -22,7 +22,7 @@ class Distro:
             for line in data.splitlines():
                 if line.startswith("ID="):
                     self.id = line.split("=")[1].strip().strip('"')
-                elif line.startswith("VERSION_CODENAME="):
+                elif any(line.startswith(prefix) for prefix in ("VERSION_CODENAME=", "VERSION=")) and not self.version_codename:
                     self.version_codename = line.split("=")[1].strip().strip('"')
 
         if self.id in ["ubuntu", "debian"]:

@@ -25,7 +25,7 @@ def show_menu():
 
     table = Table(title="🚀 Installer Menu", show_header=True, header_style="bold magenta")
     table.add_column("Option", style="cyan", justify="center")
-    table.add_column("Installer", style="green", justify="right")
+    table.add_column("Installer", style="green", justify="left")
 
     for idx, name in enumerate(installers, start=1):
         table.add_row(str(idx), f"Install {name.capitalize()}")
