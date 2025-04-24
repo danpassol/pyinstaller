@@ -1,6 +1,7 @@
 # core/distro.py
 
 import os
+import re
 
 class Distro:
     _instance = None
@@ -31,6 +32,12 @@ class Distro:
             self.package_manager = "dnf"
         elif self.id in ["arch"]:
             self.package_manager = "pacman"
+        elif self.id in ["alpine"]:
+            self.package_manager = "apk"
+        elif self.id in ["gentoo"]:
+            self.package_manager = "emerge"
+        elif re.match(r"^opensuse", self.id):
+            self.package_manager = "zypper"
         else:
             raise Exception(f"Unsupported distro: {self.id}")
 
@@ -41,6 +48,12 @@ class Distro:
             return f"dnf install -y {' '.join(packages)}"
         elif self.package_manager == "pacman":
             return f"pacman -S --noconfirm {' '.join(packages)}"
+        elif self.package_manager == "apk":
+            return f"apk add {' '.join(packages)}"
+        elif self.package_manager == "emerge":
+            return f"emerge {' '.join(packages)}"
+        elif self.package_manager == "zypper":
+            return f"zypper install -y {' '.join(packages)}"
 
     def update_cmd(self):
         if self.package_manager == "apt":
@@ -49,6 +62,12 @@ class Distro:
             return "dnf upgrade --refresh -y"
         elif self.package_manager == "pacman":
             return "pacman -Syu --noconfirm"
+        elif self.package_manager == "apk":
+            return "apk update && apk upgrade"
+        elif self.package_manager == "emerge":
+            return "emerge --sync && emerge --update --deep --newuse @world"
+        elif self.package_manager == "zypper":
+            return "zypper refresh && zypper update -y"
 
     def remove_cmd(self, packages):
         if self.package_manager == "apt":
@@ -56,4 +75,10 @@ class Distro:
         elif self.package_manager == "dnf":
             return f"dnf remove -y {' '.join(packages)}"
         elif self.package_manager == "pacman":
-            return f"pacman -R {' '.join(packages)}"
+            return f"pacman -R --noconfirm {' '.join(packages)}"
+        elif self.package_manager == "apk":
+            return f"apk del {' '.join(packages)}"
+        elif self.package_manager == "emerge":
+            return f"emerge --unmerge {' '.join(packages)}"
+        elif self.package_manager == "zypper":
+            return f"zypper remove -y {' '.join(packages)}"

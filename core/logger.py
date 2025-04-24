@@ -14,7 +14,3 @@ def setup_logger(verbose: bool = False):
     )
     return logging.getLogger("installer")
 
-# Usage:
-# from core.logger import setup_logger
-# log = setup_logger(verbose=True)
-# log.info("Hello!")
