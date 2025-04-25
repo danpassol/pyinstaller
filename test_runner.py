@@ -1,4 +1,3 @@
-import sys
 import argparse
 from core.runner import CommandRunner
 
@@ -11,22 +10,22 @@ args = parser.parse_args()
 runner = CommandRunner(verbose=args.verbose)
 
 def test_install():
-    print("\n[TEST] Installing curl...")
-    runner.install(["curl"])
+    print("\n[TEST] Installing btop and cava...")
+    runner.install(["btop, cava"])
 
 def test_upgrade():
     print("\n[TEST] Upgrading system...")
     runner.upgrade()
 
 def test_remove():
-    print("\n[TEST] Removing curl...")
-    runner.remove(["curl"])
+    print("\n[TEST] Removing cava...")
+    runner.remove(["cava"])
 
 def test_run_command():
     print("\n[TEST] Running 'ls' command...")
     output = runner.run("ls", capture_output=True)
-    print("[OUTPUT]")
-    print(output)
+    if output is not None:
+        print(output)
 
 if __name__ == "__main__":
     test_install()
