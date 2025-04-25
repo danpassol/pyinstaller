@@ -1,6 +1,14 @@
+import sys
+import argparse
 from core.runner import CommandRunner
 
-runner = CommandRunner()
+# Parse CLI args
+parser = argparse.ArgumentParser(description="Test CommandRunner functionality.")
+parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
+args = parser.parse_args()
+
+# Pass verbose to the runner
+runner = CommandRunner(verbose=args.verbose)
 
 def test_install():
     print("\n[TEST] Installing curl...")
@@ -25,3 +33,4 @@ if __name__ == "__main__":
     test_upgrade()
     test_remove()
     test_run_command()
+
