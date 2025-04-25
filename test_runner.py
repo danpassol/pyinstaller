@@ -11,7 +11,7 @@ runner = CommandRunner(verbose=args.verbose)
 
 def test_install():
     print("\n[TEST] Installing btop and cava...")
-    runner.install(["btop, cava"])
+    runner.install(["btop","cava"])
 
 def test_upgrade():
     print("\n[TEST] Upgrading system...")
