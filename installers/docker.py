@@ -2,6 +2,7 @@
 
 from core.runner import CommandRunner
 from core.logger import setup_logger
+import shutil
 
 log = setup_logger()
 
@@ -9,7 +10,7 @@ def run(verbose=False):
     runner = CommandRunner(verbose=verbose)
     pm = runner.package_manager
 
-    if runner.run("docker -v", capture_output=True):
+    if shutil.which("docker"):
         log.error("Docker is already installed.")
         return
     
@@ -18,9 +19,9 @@ def run(verbose=False):
     log.warning("This script will install Docker, updating system packages and dependencies.")
     log.warning("Please ensure you have a backup of your system before proceeding.")
     
-    input("Press Enter to continue or type N to cancel... [Y/n]").strip().lower()
-    if input() in ["n", "N"]:
-        log.info("Installation cancelled by user.")
+    choice = input("Press Enter to continue or type N to cancel... [Y/n]").strip().lower()
+    if choice in ["n", "N"]:
+        log.error("Installation cancelled by user.")
         return
     
     runner.upgrade()
@@ -64,9 +65,6 @@ def run(verbose=False):
     for step in install_steps[pm]:
         step()
 
-    # Start and enable Docker service
-    runner.run("systemctl enable docker")
-    runner.run("systemctl start docker")
     log.info("Docker installation completed successfully.")
 
     # Prompt for Portainer installation
