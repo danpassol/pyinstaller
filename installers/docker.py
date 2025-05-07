@@ -1,5 +1,3 @@
-# installers/docker.py
-
 from core.runner import CommandRunner
 from core.logger import setup_logger
 import shutil
@@ -9,6 +7,7 @@ log = setup_logger()
 def run(verbose=False):
     runner = CommandRunner(verbose=verbose)
     pm = runner.package_manager
+    distro = runner.distro.id
 
     if shutil.which("docker"):
         log.error("Docker is already installed.")
@@ -19,7 +18,7 @@ def run(verbose=False):
     log.warning("This script will install Docker, updating system packages and dependencies.")
     log.warning("Please ensure you have a backup of your system before proceeding.")
     
-    choice = input("Press Enter to continue or type N to cancel... [Y/n]").strip().lower()
+    choice = input("Press Enter to continue or type N to cancel... [Y/n] ").strip().lower()
     if choice in ["n", "N"]:
         log.error("Installation cancelled by user.")
         return
@@ -28,7 +27,7 @@ def run(verbose=False):
 
     install_steps = {
         "apt": [
-            lambda: runner.install(["ca-certificates", "curl"]),
+            lambda: runner.install(["ca-certificates", "curl", "lsb-release", "gnupg",]),
             lambda: runner.run(
                 "curl -fsSL https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/gpg | "
                 "gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg"),
@@ -37,12 +36,12 @@ def run(verbose=False):
                 "https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]') "
                 "$(lsb_release -cs) stable\" > /etc/apt/sources.list.d/docker.list"),
             lambda: runner.upgrade(),
-            lambda: runner.install(["docker-ce", "docker-ce-cli", "containerd.io"]),
+            lambda: runner.install(["docker-ce", "docker-ce-cli", "containerd.io", "docker-buildx-plugin", "docker-compose-plugin"]),
         ],
         "dnf": [
             lambda: runner.install(["dnf-plugins-core"]),
-            lambda: runner.run("dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"),
-            lambda: runner.install(["docker-ce", "docker-ce-cli", "containerd.io"]),
+            lambda: runner.run(f"dnf config-manager --add-repo https://download.docker.com/linux/{distro}/docker-ce.repo"),
+            lambda: runner.install(["docker-ce", "docker-ce-cli", "containerd.io", "docker-buildx-plugin", "docker-compose-plugin"]),
         ],
         "pacman": [
             lambda: runner.install(["docker"]),
