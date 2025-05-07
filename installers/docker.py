@@ -1,22 +1,91 @@
+# installers/docker.py
+
 from core.runner import CommandRunner
 from core.logger import setup_logger
-from core.distro import Distro
+
+log = setup_logger()
 
 def run(verbose=False):
-
-    log = setup_logger()
-    distro = Distro()
     runner = CommandRunner(verbose=verbose)
+    pm = runner.package_manager
 
-    if verbose:
-        log.info("Verbose mode enabled.")
-    try:
-        runner.run("docker --version")
-        log.info("Docker is already installed.")
+    if runner.run("docker -v", capture_output=True):
+        log.error("Docker is already installed.")
         return
-    except Exception as e:
-        log.error(f"Error checking Docker installation: {e}")
-
-    log.info("Installing dependencies...")
-    runner.install(["curl", "ca-certificates", "gnupg", "lsb-release"])
     
+    log.info("Starting Docker installation...")
+    
+    log.warning("This script will install Docker, updating system packages and dependencies.")
+    log.warning("Please ensure you have a backup of your system before proceeding.")
+    
+    input("Press Enter to continue or type N to cancel... [Y/n]").strip().lower()
+    if input() in ["n", "N"]:
+        log.info("Installation cancelled by user.")
+        return
+    
+    runner.upgrade()
+
+    install_steps = {
+        "apt": [
+            lambda: runner.install(["ca-certificates", "curl"]),
+            lambda: runner.run(
+                "curl -fsSL https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/gpg | "
+                "gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg"),
+            lambda: runner.run(
+                "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] "
+                "https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]') "
+                "$(lsb_release -cs) stable\" > /etc/apt/sources.list.d/docker.list"),
+            lambda: runner.upgrade(),
+            lambda: runner.install(["docker-ce", "docker-ce-cli", "containerd.io"]),
+        ],
+        "dnf": [
+            lambda: runner.install(["dnf-plugins-core"]),
+            lambda: runner.run("dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"),
+            lambda: runner.install(["docker-ce", "docker-ce-cli", "containerd.io"]),
+        ],
+        "pacman": [
+            lambda: runner.install(["docker"]),
+        ],
+        "apk": [
+            lambda: runner.install(["docker", "openrc"]),
+        ],
+        "zypper": [
+            lambda: runner.install(["docker"]),
+        ],
+        "emerge": [
+            lambda: runner.install(["app-containers/docker"]),
+        ]
+    }
+
+    if pm not in install_steps:
+        log.error(f"Docker installation not supported for package manager: {pm}")
+        return
+
+    for step in install_steps[pm]:
+        step()
+
+    # Start and enable Docker service
+    runner.run("systemctl enable docker")
+    runner.run("systemctl start docker")
+    log.info("Docker installation completed successfully.")
+
+    # Prompt for Portainer installation
+    try:
+        choice = input("Do you want to install Portainer? [Y/n]: ").strip().lower()
+        if choice in ["", "y", "yes"]:
+            install_portainer(runner)
+        else:
+            log.info("Skipping Portainer installation.")
+    except KeyboardInterrupt:
+        log.warning("Installation interrupted by user.")
+
+def install_portainer(runner):
+    log.info("Installing Portainer...")
+    runner.run("docker volume create portainer_data")
+    runner.run(
+        "docker run -d -p 8000:8000 -p 9443:9443 --name portainer "
+        "--restart=always -v /var/run/docker.sock:/var/run/docker.sock "
+        "-v portainer_data:/data portainer/portainer-ce:latest"
+    )
+    log.info("Portainer installation completed and running at https://localhost:9443")
+

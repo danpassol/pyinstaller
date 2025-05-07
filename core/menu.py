@@ -52,7 +52,7 @@ def show_menu():
         log.error("Invalid selection.")
         return None, False
 
-def run_selected_installer():
+def run_app():
     installer_name, verbose = show_menu()
 
     if installer_name:
