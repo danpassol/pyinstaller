@@ -4,54 +4,73 @@ import subprocess
 from core.distro import Distro
 from core.logger import setup_logger
 from rich.console import Console
+from rich.live import Live
+from rich.progress import (
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    TimeElapsedColumn,
+)
 
 log = setup_logger()
 console = Console()
 
+
 class CommandRunner:
     def __init__(self, verbose=False):
         self.verbose = verbose
-        self.distro = Distro()  # Uses the singleton instance
+        self.distro = Distro()
         self.package_manager = self.distro.package_manager
 
-    def _run_cmd(self, cmd, capture_output=False, spinner=None, description="Processing command..."):
-        try:
-            if self.verbose:
-                process = subprocess.Popen(cmd, shell=True)
-                process.communicate()
-                if process.returncode != 0:
-                    log.error(f"Command failed: {cmd}")
-                return None
+    def _execute(self, cmd):
+        if self.verbose:
+            console.rule(f"[bold cyan]Running: {cmd}")
+            process = subprocess.Popen(cmd, shell=True)
+            process.communicate()
+            if process.returncode != 0:
+                log.error(f"Command failed: {cmd}")
+        else:
+            result = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return result.stdout.decode().strip() if result else None
 
-            if spinner:
-                with console.status(f"[bold green]{description}", spinner=spinner):
-                    result = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            else:
-                result = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    def _rich_step(self, label, cmd):
+        if self.verbose:
+            return self._execute(cmd)
 
-            if capture_output:
-                return result.stdout.decode().strip()
-            return None
+        progress = Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            TimeElapsedColumn()
+        )
 
-        except subprocess.CalledProcessError as e:
-            log.error(f"Command failed: {cmd}")
-            log.error(f"Error message: {e.stderr.decode().strip()}")
-            raise e
-        
-    def install(self, packages, spinner="dots",):
+        with Live(progress, console=console, transient=True):
+            task_id = progress.add_task(label, start=True)
+            try:
+                self._execute(cmd)
+            except subprocess.CalledProcessError as e:
+                progress.stop()
+                log.error(e.stderr.decode().strip())
+                raise
+            finally:
+                progress.update(task_id, completed=100)
+
+    def install(self, packages, spinner="dots"):
+        desc = f"Installing {', '.join(packages)}"
         cmd = self.distro.install_cmd(packages)
-        log.info(f"Installing packages: {packages}")
-        return self._run_cmd(cmd, spinner=spinner, description="Installing...")
+        log.info(desc)
+        return self._rich_step(desc, cmd)
 
-    def upgrade(self, spinner="dots",):
+    def upgrade(self, spinner="dots"):
+        desc = "Upgrading system"
         cmd = self.distro.update_cmd()
-        log.info("Upgrading system...")
-        return self._run_cmd(cmd, spinner=spinner, description="Updating...")
+        log.info(desc)
+        return self._rich_step(desc, cmd)
 
-    def remove(self, packages, spinner="dots",):
+    def remove(self, packages, spinner="dots"):
+        desc = f"Removing {', '.join(packages)}"
         cmd = self.distro.remove_cmd(packages)
-        log.info(f"Removing packages: {packages}")
-        return self._run_cmd(cmd, spinner=spinner, description="Removing...")
+        log.info(desc)
+        return self._rich_step(desc, cmd)
 
-    def run(self, cmd, capture_output=False, spinner=None):
-        return self._run_cmd(cmd, capture_output, spinner=spinner, description=None)
+    def run(self, cmd, capture_output=False):
+        return self._execute(cmd)
