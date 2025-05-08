@@ -64,6 +64,19 @@ def run(verbose=False):
     for step in install_steps[pm]:
         step()
 
+    start_cmds = [
+        "systemctl start docker && systemctl enable docker",
+        "service docker start",
+        "rc-service docker start",
+    ]
+        
+    for cmd in start_cmds:
+        if runner.run(cmd, capture_output=False):
+            log.info("Docker service started successfully.")
+            break
+    else:
+        log.error("Failed to start Docker service. Please start it manually.")
+
     log.info("Docker installation completed successfully.")
 
     # Prompt for Portainer installation
