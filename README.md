@@ -56,6 +56,7 @@ def run(verbose=False):
     # Your installation logic here
     pass
 ```
+More info on the [Installers](INSTALLERS.md) file
 
 ## Contributing 🤝
 
