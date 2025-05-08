@@ -64,22 +64,15 @@ def run(verbose=False):
     for step in install_steps[pm]:
         step()
 
-    start_cmds = [
-        "systemctl start docker && systemctl enable docker",
-        "service docker start",
-        "rc-service docker start",
-    ]
-        
-    for cmd in start_cmds:
-        if runner.run(cmd, capture_output=False):
-            log.info("Docker service started successfully.")
-            break
+    use_openrc = pm in ["apk", "emerge"]
+
+    if use_openrc:
+        runner.run("rc-service docker start")
     else:
-        log.error("Failed to start Docker service. Please start it manually.")
+        runner.run("systemctl start docker && systemctl enable docker")
+    
 
-    log.info("Docker installation completed successfully.")
-
-    # Prompt for Portainer installation
+# Prompt for Portainer installation
     try:
         choice = input("Do you want to install Portainer? [Y/n]: ").strip().lower()
         if choice in ["", "y", "yes"]:
