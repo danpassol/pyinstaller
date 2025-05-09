@@ -34,9 +34,14 @@ class CommandRunner:
         cmd = self.distro.install_cmd(packages)
         log.info(f"Installing packages: {packages}")
         return self._run_cmd(cmd)
+    
+    def update(self):
+        cmd = self.distro.update_cmd()
+        log.info("Updating system...")
+        return self._run_cmd(cmd)
 
     def upgrade(self):
-        cmd = self.distro.update_cmd()
+        cmd = self.distro.upgrade_cmd()
         log.info("Upgrading system...")
         return self._run_cmd(cmd)
 

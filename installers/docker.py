@@ -25,7 +25,6 @@ def run(verbose=False):
         log.error("Installation cancelled by user.")
         return
 
-    runner.upgrade()
 
     install_steps = {
         "apt": [
@@ -39,7 +38,7 @@ def run(verbose=False):
                 "https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]') "
                 "$(lsb_release -cs) stable\" > /etc/apt/sources.list.d/docker.list"
             ),
-            lambda: runner.upgrade(),
+            lambda: runner.update(),
             lambda: runner.install(["docker-ce", "docker-ce-cli", "containerd.io", "docker-buildx-plugin", "docker-compose-plugin"]),
         ],
         "dnf": [
@@ -68,9 +67,15 @@ def run(verbose=False):
     try:
         # Initialize progress manager with 2 apps (Docker and optional Portainer)
         progress_manager.start(total_apps=2)
+        # Add Docker app to progress manager
+        app_steps_task_id = progress_manager.add_app("Docker", total_steps=len(install_steps[pm])+1)
+        #update package manager
+        step_app_id = progress_manager.add_step("Docker", "Updating package manager...")
+        runner.update()
+        progress_manager.complete_step(step_app_id)
+        progress_manager.advance_app(app_steps_task_id)
 
         # Docker installation
-        app_steps_task_id = progress_manager.add_app("Docker", total_steps=len(install_steps[pm]))
         for step in install_steps[pm]:
             step_app_id = progress_manager.add_step("Docker", "Executing step...")
             step()

@@ -60,12 +60,22 @@ class Distro:
 
     def update_cmd(self):
         return {
-            "apt": "apt update && apt upgrade -y",
-            "dnf": "dnf upgrade --refresh -y",
-            "pacman": "pacman -Syu --noconfirm",
-            "apk": "apk update && apk upgrade",
-            "emerge": "emerge --sync && emerge --update --deep --newuse @world",
-            "zypper": "zypper refresh && zypper update -y",
+            "apt": "apt update",
+            "dnf": "dnf makecache",
+            "pacman": "pacman -Sy",
+            "apk": "apk update",
+            "emerge": "emerge --sync",
+            "zypper": "zypper refresh",
+        }[self.package_manager]
+    
+    def upgrade_cmd(self):
+        return {
+            "apt": "apt upgrade -y",
+            "dnf": "dnf upgrade -y",
+            "pacman": "pacman -Su",
+            "apk": "apk upgrade -y",
+            "emerge": "emerge --update --deep --newuse @world",
+            "zypper": "zypper update -y",
         }[self.package_manager]
 
     def remove_cmd(self, packages):
