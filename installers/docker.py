@@ -102,21 +102,20 @@ def run(verbose=False):
 
 
 def install_portainer(runner):
-    progress_manager.start(total_apps=1)
+    
     log.info("Installing Portainer...")
     progress_manager.add_app("Portainer", total_steps=2)
     step_task_id = progress_manager.add_step("Portainer", "creating volume for data")
     runner.run("docker volume create portainer_data")
     progress_manager.complete_step(step_task_id)
-    step_task_id = progress_manager.add_step("Portainer", "creating volume for data")
+    step_task_id = progress_manager.add_step("Portainer", "creating container")
     runner.run(
         "docker run -d -p 8000:8000 -p 9443:9443 --name portainer "
         "--restart=always -v /var/run/docker.sock:/var/run/docker.sock "
         "-v portainer_data:/data portainer/portainer-ce:latest"
     )
     progress_manager.complete_step(step_task_id)
-    progress_manager.update_overall("[bold green]Porainer installation complete!", advance=1)
-    progress_manager.stop()
+    progress_manager.update_overall("[bold green]Portainer installation complete!", advance=1)
 
     log.info("Portainer installation completed and running at https://localhost:9443")
 
